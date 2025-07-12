@@ -249,56 +249,62 @@
     </div>
   </div>
 
-  <script>
-    const form = document.getElementById('inscriptionForm');
-    const message = document.getElementById('message');
+<script>
+  const form = document.getElementById('inscriptionForm');
+  const message = document.getElementById('message');
 
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
 
-      const nomComplet = document.getElementById('nomComplet').value.trim();
-      const classeFiliere = document.getElementById('classeFiliere').value.trim();
-      const telephone = document.getElementById('telephone').value.trim();
-      const statut = document.getElementById('statut').value;
-      const presence = document.querySelector('input[name="presence"]:checked')?.value;
+    const nomComplet = document.getElementById('nomComplet').value.trim();
+    const classeFiliere = document.getElementById('classeFiliere').value.trim();
+    const telephone = document.getElementById('telephone').value.trim();
+    const statut = document.getElementById('statut').value;
+    const presence = document.querySelector('input[name="presence"]:checked')?.value;
 
-      if (!nomComplet || !statut || !presence) {
-        alert("Veuillez remplir tous les champs obligatoires.");
-        return;
-      }
+    if (!nomComplet || !statut || !presence) {
+      alert("Veuillez remplir tous les champs obligatoires.");
+      return;
+    }
 
-      // Construire un objet utilisateur
-      const inscription = {
-        nomComplet,
-        classeFiliere,
-        telephone,
-        statut,
-        presence,
-        date: new Date().toISOString()
-      };
+    const inscription = {
+      nomComplet,
+      classeFiliere,
+      telephone,
+      statut,
+      presence
+    };
 
-      // Récupérer les anciennes inscriptions
-      const existingData = JSON.parse(localStorage.getItem('inscriptions') || '[]');
-
-      // Ajouter la nouvelle inscription
-      existingData.push(inscription);
-
-      // Sauvegarder dans le LocalStorage
-      localStorage.setItem('inscriptions', JSON.stringify(existingData));
-
-      // Afficher message de succès
-      form.reset();
-      form.style.display = 'none';
-      message.innerHTML = `
+    // ✅ ENVOI À L’API NODE.JS
+    fetch('https://istech-bal-api.onrender.com/api/inscription', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(inscription)
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        form.reset();
+        form.style.display = 'none';
+        message.innerHTML = `
 <div style='max-width:500px;margin:60px auto;padding:40px 30px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:20px;box-shadow:0 8px 32px rgba(102,126,234,0.18);text-align:center;color:white;position:relative;'>
-    <div style='font-size:3em;margin-bottom:10px;'>🎉🥳✨</div>
-    <div style='font-size:1.5em;font-weight:bold;margin-bottom:10px;'>Inscription validée !</div>
-    <div style='font-size:1.1em;margin-bottom:20px;'>Ta présence est enregistrée pour le bal de fin d'année.<br>Prépare-toi pour une soirée inoubliable !</div>
-    <a href='index.html' style='display:inline-block;margin-top:15px;padding:12px 28px;background:#fff;color:#764ba2;font-weight:600;border-radius:8px;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,0.08);transition:background 0.2s;'>Retour à l'accueil</a>
-    <div style='position:absolute;top:10px;right:20px;font-size:1.5em;opacity:0.5;'>✨</div>
-    <div style='position:absolute;bottom:10px;left:20px;font-size:1.5em;opacity:0.5;'>🎊</div>
-    </div>`;
+  <div style='font-size:3em;margin-bottom:10px;'>🎉🥳✨</div>
+  <div style='font-size:1.5em;font-weight:bold;margin-bottom:10px;'>Inscription validée !</div>
+  <div style='font-size:1.1em;margin-bottom:20px;'>Ta présence est enregistrée pour le bal de fin d'année.<br>Prépare-toi pour une soirée inoubliable !</div>
+  <a href='index.html' style='display:inline-block;margin-top:15px;padding:12px 28px;background:#fff;color:#764ba2;font-weight:600;border-radius:8px;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,0.08);transition:background 0.2s;'>Retour à l'accueil</a>
+  <div style='position:absolute;top:10px;right:20px;font-size:1.5em;opacity:0.5;'>✨</div>
+  <div style='position:absolute;bottom:10px;left:20px;font-size:1.5em;opacity:0.5;'>🎊</div>
+</div>`;
+      } else {
+        alert("Erreur lors de l'inscription. Veuillez réessayer.");
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      alert("Erreur de connexion à l’API.");
     });
-  </script>
+  });
+</script>
+
 </body>
 </html>
