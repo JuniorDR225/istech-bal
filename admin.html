@@ -6,20 +6,19 @@
   <title>Admin - Inscriptions Bal</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
   <style>
+    /* 🎨 Design identique (non modifié pour la clarté) */
     body {
       background: #181818 url('background2.png') center/cover no-repeat fixed;
       margin: 0;
       font-family: 'Montserrat', Arial, sans-serif;
       color: #fff;
     }
-
     .overlay {
       position: fixed;
       top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(24,24,24,0.45);
       z-index: 0;
     }
-
     .container {
       position: relative;
       z-index: 1;
@@ -30,7 +29,6 @@
       border-radius: 20px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.4);
     }
-
     h1 {
       font-family: 'Playfair Display', serif;
       font-size: 2.5rem;
@@ -39,41 +37,34 @@
       margin-bottom: 30px;
       text-shadow: 0 2px 12px #764ba2cc;
     }
-
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
     }
-
     th, td {
       padding: 12px 15px;
       border-bottom: 1px solid #333;
       text-align: left;
       font-size: 0.95rem;
     }
-
     th {
       background: linear-gradient(to right, #FFD700, #764ba2);
       color: #23243a;
       font-weight: bold;
     }
-
     tr:nth-child(even) {
       background: rgba(255, 255, 255, 0.05);
     }
-
     .no-data {
       text-align: center;
       font-size: 1.2rem;
       margin-top: 40px;
       color: #ccc;
     }
-
-    .btn-clear {
+    .btn-clear, .btn-export {
       display: inline-block;
       padding: 12px 20px;
-      background: #ff4d4d;
       color: white;
       border: none;
       border-radius: 8px;
@@ -81,55 +72,41 @@
       cursor: pointer;
       transition: background 0.3s;
     }
-
+    .btn-clear {
+      background: #ff4d4d;
+    }
     .btn-clear:hover {
       background: #e60000;
     }
-
     .btn-export {
-      display: inline-block;
-      padding: 12px 20px;
       background: #00cc66;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background 0.3s;
       margin-left: 10px;
     }
-
     .btn-export:hover {
       background: #00a157;
     }
-
     .btn-group {
       margin-top: 30px;
       text-align: center;
     }
-
     @media (max-width: 600px) {
       table, thead, tbody, th, td, tr {
         display: block;
       }
-
       thead {
         display: none;
       }
-
       tr {
         margin-bottom: 20px;
         background: rgba(255, 255, 255, 0.03);
         border-radius: 12px;
         padding: 10px;
       }
-
       td {
         padding: 10px;
         text-align: right;
         position: relative;
       }
-
       td::before {
         content: attr(data-label);
         position: absolute;
@@ -154,9 +131,21 @@
   </div>
 
   <script>
+    let inscriptions = [];
+
+    async function fetchInscriptions() {
+      try {
+        const res = await fetch('https://istech-bal-api.onrender.com/api/inscriptions');
+        inscriptions = await res.json();
+        afficherInscriptions();
+      } catch (err) {
+        console.error(err);
+        document.getElementById('tableContainer').innerHTML = '<p class="no-data">Erreur de chargement des inscriptions.</p>';
+      }
+    }
+
     function afficherInscriptions() {
       const tableContainer = document.getElementById('tableContainer');
-      const inscriptions = JSON.parse(localStorage.getItem('inscriptions') || '[]');
 
       if (inscriptions.length === 0) {
         tableContainer.innerHTML = '<p class="no-data">Aucune inscription enregistrée.</p>';
@@ -195,55 +184,59 @@
       tableContainer.innerHTML = tableHTML;
     }
 
-    function clearInscriptions() {
+    async function clearInscriptions() {
       if (confirm("Voulez-vous vraiment supprimer toutes les inscriptions ?")) {
-        localStorage.removeItem('inscriptions');
-        afficherInscriptions();
+        try {
+          await fetch('https://istech-bal-api.onrender.com/api/inscriptions', {
+            method: 'DELETE'
+          });
+          inscriptions = [];
+          afficherInscriptions();
+        } catch (err) {
+          alert("Erreur lors de la suppression.");
+        }
       }
     }
 
-function exporterCSV() {
-  const inscriptions = JSON.parse(localStorage.getItem('inscriptions') || '[]');
-  if (inscriptions.length === 0) {
-    alert("Aucune donnée à exporter.");
-    return;
-  }
+    function exporterCSV() {
+      if (inscriptions.length === 0) {
+        alert("Aucune donnée à exporter.");
+        return;
+      }
 
-  const lignes = [
-    ["Nom Complet", "Classe/Filière", "Téléphone", "Statut", "Présence", "Date d'inscription"]
-  ];
+      const lignes = [
+        ["Nom Complet", "Classe/Filière", "Téléphone", "Statut", "Présence", "Date d'inscription"]
+      ];
 
-  inscriptions.forEach(item => {
-    lignes.push([
-      item.nomComplet,
-      item.classeFiliere,
-      item.telephone,
-      item.statut,
-      item.presence === "present" ? "Présent" : "Absent",
-      new Date(item.date).toLocaleString()
-    ]);
-  });
+      inscriptions.forEach(item => {
+        lignes.push([
+          item.nomComplet,
+          item.classeFiliere,
+          item.telephone,
+          item.statut,
+          item.presence === "present" ? "Présent" : "Absent",
+          new Date(item.date).toLocaleString()
+        ]);
+      });
 
-  const contenuCSV = lignes.map(ligne =>
-    ligne.map(val => `"${val.replace(/"/g, '""')}"`).join(",")
-  ).join("\n");
+      const contenuCSV = lignes.map(ligne =>
+        ligne.map(val => `"${val.replace(/"/g, '""')}"`).join(",")
+      ).join("\n");
 
-  // Ajouter le BOM (Byte Order Mark)
-  const bom = "\uFEFF";
-  const blob = new Blob([bom + contenuCSV], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
+      const bom = "\uFEFF";
+      const blob = new Blob([bom + contenuCSV], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
 
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "inscriptions_bal.csv";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-}
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "inscriptions_bal.csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
 
-
-    // Affichage au chargement
-    afficherInscriptions();
+    // Charger les données au démarrage
+    fetchInscriptions();
   </script>
 </body>
 </html>
