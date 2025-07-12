@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin - Inscriptions Bal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: #181818 url('background2.png') center/cover no-repeat fixed;
+      margin: 0;
+      font-family: 'Montserrat', Arial, sans-serif;
+      color: #fff;
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(24,24,24,0.45);
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 960px;
+      margin: 80px auto;
+      padding: 40px 20px;
+      background: rgba(30,30,40,0.9);
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.5rem;
+      text-align: center;
+      color: #FFD700;
+      margin-bottom: 30px;
+      text-shadow: 0 2px 12px #764ba2cc;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #333;
+      text-align: left;
+      font-size: 0.95rem;
+    }
+
+    th {
+      background: linear-gradient(to right, #FFD700, #764ba2);
+      color: #23243a;
+      font-weight: bold;
+    }
+
+    tr:nth-child(even) {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .no-data {
+      text-align: center;
+      font-size: 1.2rem;
+      margin-top: 40px;
+      color: #ccc;
+    }
+
+    .btn-clear {
+      display: inline-block;
+      padding: 12px 20px;
+      background: #ff4d4d;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .btn-clear:hover {
+      background: #e60000;
+    }
+
+    .btn-export {
+      display: inline-block;
+      padding: 12px 20px;
+      background: #00cc66;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+      margin-left: 10px;
+    }
+
+    .btn-export:hover {
+      background: #00a157;
+    }
+
+    .btn-group {
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    @media (max-width: 600px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+
+      thead {
+        display: none;
+      }
+
+      tr {
+        margin-bottom: 20px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 12px;
+        padding: 10px;
+      }
+
+      td {
+        padding: 10px;
+        text-align: right;
+        position: relative;
+      }
+
+      td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 10px;
+        font-weight: bold;
+        text-transform: capitalize;
+        color: #FFD700;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay"></div>
+  <div class="container">
+    <h1>Liste des Inscriptions</h1>
+    <div id="tableContainer"></div>
+
+    <div class="btn-group">
+      <button class="btn-clear" onclick="clearInscriptions()">🗑 Vider les inscriptions</button>
+      <button class="btn-export" onclick="exporterCSV()">📁 Exporter en CSV</button>
+    </div>
+  </div>
+
+  <script>
+    function afficherInscriptions() {
+      const tableContainer = document.getElementById('tableContainer');
+      const inscriptions = JSON.parse(localStorage.getItem('inscriptions') || '[]');
+
+      if (inscriptions.length === 0) {
+        tableContainer.innerHTML = '<p class="no-data">Aucune inscription enregistrée.</p>';
+        return;
+      }
+
+      let tableHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nom Complet</th>
+              <th>Classe/Filière</th>
+              <th>Téléphone</th>
+              <th>Statut</th>
+              <th>Présence</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>`;
+
+      inscriptions.forEach((item, index) => {
+        tableHTML += `
+          <tr>
+            <td data-label="#">${index + 1}</td>
+            <td data-label="Nom">${item.nomComplet}</td>
+            <td data-label="Classe">${item.classeFiliere}</td>
+            <td data-label="Téléphone">${item.telephone}</td>
+            <td data-label="Statut">${item.statut}</td>
+            <td data-label="Présence">${item.presence === "present" ? "✅ Présent" : "❌ Absent"}</td>
+            <td data-label="Date">${new Date(item.date).toLocaleString()}</td>
+          </tr>`;
+      });
+
+      tableHTML += `</tbody></table>`;
+      tableContainer.innerHTML = tableHTML;
+    }
+
+    function clearInscriptions() {
+      if (confirm("Voulez-vous vraiment supprimer toutes les inscriptions ?")) {
+        localStorage.removeItem('inscriptions');
+        afficherInscriptions();
+      }
+    }
+
+function exporterCSV() {
+  const inscriptions = JSON.parse(localStorage.getItem('inscriptions') || '[]');
+  if (inscriptions.length === 0) {
+    alert("Aucune donnée à exporter.");
+    return;
+  }
+
+  const lignes = [
+    ["Nom Complet", "Classe/Filière", "Téléphone", "Statut", "Présence", "Date d'inscription"]
+  ];
+
+  inscriptions.forEach(item => {
+    lignes.push([
+      item.nomComplet,
+      item.classeFiliere,
+      item.telephone,
+      item.statut,
+      item.presence === "present" ? "Présent" : "Absent",
+      new Date(item.date).toLocaleString()
+    ]);
+  });
+
+  const contenuCSV = lignes.map(ligne =>
+    ligne.map(val => `"${val.replace(/"/g, '""')}"`).join(",")
+  ).join("\n");
+
+  // Ajouter le BOM (Byte Order Mark)
+  const bom = "\uFEFF";
+  const blob = new Blob([bom + contenuCSV], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "inscriptions_bal.csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+
+    // Affichage au chargement
+    afficherInscriptions();
+  </script>
+</body>
+</html>
