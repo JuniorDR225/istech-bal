@@ -171,12 +171,12 @@
         tableHTML += `
           <tr>
             <td data-label="#">${index + 1}</td>
-            <td data-label="Nom">${item.nomComplet}</td>
-            <td data-label="Classe">${item.classeFiliere}</td>
+            <td data-label="Nom">${item.nomcomplet}</td>
+            <td data-label="Classe">${item.classefiliere}</td>
             <td data-label="Téléphone">${item.telephone}</td>
             <td data-label="Statut">${item.statut}</td>
             <td data-label="Présence">${item.presence === "present" ? "✅ Présent" : "❌ Absent"}</td>
-            <td data-label="Date">${new Date(item.date).toLocaleString()}</td>
+            <td data-label="Date">${new Date(item.date_inscription).toLocaleString()}</td>
           </tr>`;
       });
 
