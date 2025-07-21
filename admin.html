@@ -198,42 +198,9 @@
       }
     }
 
-    function exporterCSV() {
-      if (inscriptions.length === 0) {
-        alert("Aucune donnée à exporter.");
-        return;
-      }
-
-      const lignes = [
-        ["Nom Complet", "Classe/Filière", "Téléphone", "Statut", "Présence", "Date d'inscription"]
-      ];
-
-      inscriptions.forEach(item => {
-        lignes.push([
-          item.nomComplet,
-          item.classeFiliere,
-          item.telephone,
-          item.statut,
-          item.presence === "present" ? "Présent" : "Absent",
-          new Date(item.date).toLocaleString()
-        ]);
-      });
-
-      const contenuCSV = lignes.map(ligne =>
-        ligne.map(val => `"${val.replace(/"/g, '""')}"`).join(",")
-      ).join("\n");
-
-      const bom = "\uFEFF";
-      const blob = new Blob([bom + contenuCSV], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "inscriptions_bal.csv";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    }
+function exporterCSV() {
+  window.open('https://istech-bal-api.onrender.com/api/export', '_blank');
+}
 
     // Charger les données au démarrage
     fetchInscriptions();
