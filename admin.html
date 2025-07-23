@@ -199,7 +199,12 @@
     }
 
 function exporterCSV() {
-  window.open('https://istech-bal-api.onrender.com/api/export', '_blank');
+  const a = document.createElement('a');
+  a.href = 'https://ton-api.com/api/export';
+  a.download = 'inscriptions_bal.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 
     // Charger les données au démarrage
