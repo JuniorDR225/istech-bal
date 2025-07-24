@@ -163,6 +163,7 @@
               <th>Statut</th>
               <th>Présence</th>
               <th>Date</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>`;
@@ -177,6 +178,11 @@
             <td data-label="Statut">${item.statut}</td>
             <td data-label="Présence">${item.presence === "present" ? "✅ Présent" : "❌ Absent"}</td>
             <td data-label="Date">${new Date(item.date_inscription).toLocaleString()}</td>
+                  <td data-label="Actions">
+        <button onclick="supprimerInscription(${item.id})" style="background:#ff4d4d; color:white; border:none; padding:6px 10px; border-radius:5px; cursor:pointer;">
+          Supprimer
+        </button>
+      </td>
           </tr>`;
       });
 
@@ -242,6 +248,26 @@ async function exporterCSV() {
   }
 }
 
+async function supprimerInscription(id) {
+  if (confirm("Voulez-vous vraiment supprimer cette inscription ?")) {
+    try {
+      const res = await fetch(`https://istech-bal-api.onrender.com/api/inscriptions/${id}`, {
+        method: 'DELETE'
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        inscriptions = inscriptions.filter(item => item.id !== id);
+        afficherInscriptions();
+      } else {
+        alert("Erreur : " + data.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Erreur lors de la suppression.");
+    }
+  }
+}
 
 
     // Charger les données au démarrage
